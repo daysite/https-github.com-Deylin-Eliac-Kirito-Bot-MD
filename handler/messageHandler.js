@@ -1,5 +1,5 @@
 import { sock } from '../lib/connection.js';
-import { commandHandler } from './commandHandler.js';  // ✅ CAMBIAR esta línea
+import { commandHandler } from '../handler/commandHandler.js';
 import { config } from '../config.js';
 
 sock.ev.on('messages.upsert', async ({ messages }) => {
