@@ -1,5 +1,5 @@
 import { startBot } from './lib/connection.js';
-import './handler/messageHandler.js';   // ✅ Nueva
+
 console.log(`
 ╔═══════════════════════════╗
 ║    🐱 NEKOBOT-MD 🐱     ║
@@ -7,4 +7,7 @@ console.log(`
 ╚═══════════════════════════╝
 `);
 
-startBot();
+// Primero iniciar el bot, luego importar los handlers
+startBot().then(() => {
+    import('./handler/messageHandler.js');
+});
