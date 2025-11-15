@@ -1,12 +1,11 @@
 import { config } from '../config.js';
 
+// ✅ SOLO la definición del comando (sin función duplicada)
 export const menu = {
     name: 'menu',
-    description: 'Menú de comandos'
-};
-
-export async function menu(sock, message, jid, userJid, args, isGroup) {
-    const menuText = `
+    description: 'Menú de comandos',
+    execute: async (sock, message, jid, userJid, args, isGroup) => {
+        const menuText = `
 🐱 *${config.botName}* 🐱
 *Versión:* ${config.version}
 
@@ -27,34 +26,32 @@ ${config.prefix}grupos - Comandos de grupo
 🔧 *Owner* ${config.owner.includes(userJid) ? '' : '(Solo owner)'}
 ${config.prefix}bc [texto] - Broadcast
 
-_📧 Creado con ❤️ usando Baileys_
-    `.trim();
+_📧 Creado con ❤️ usando Baileys`
+        `.trim();
 
-    await sock.sendMessage(jid, { text: menuText });
-}
+        await sock.sendMessage(jid, { text: menuText });
+    }
+};
 
 export const ping = {
     name: 'ping',
-    description: 'Ver velocidad del bot'
+    description: 'Ver velocidad del bot',
+    execute: async (sock, message, jid, userJid, args, isGroup) => {
+        const start = Date.now();
+        await sock.sendMessage(jid, { text: '🏓 Pong!' });
+        const latency = Date.now() - start;
+        
+        await sock.sendMessage(jid, { 
+            text: `🚀 *Latencia:* ${latency}ms` 
+        });
+    }
 };
-
-export async function ping(sock, message, jid, userJid, args, isGroup) {
-    const start = Date.now();
-    await sock.sendMessage(jid, { text: '🏓 Pong!' });
-    const latency = Date.now() - start;
-    
-    await sock.sendMessage(jid, { 
-        text: `🚀 *Latencia:* ${latency}ms` 
-    });
-}
 
 export const info = {
     name: 'info',
-    description: 'Información del bot'
-};
-
-export async function info(sock, message, jid, userJid, args, isGroup) {
-    const infoText = `
+    description: 'Información del bot',
+    execute: async (sock, message, jid, userJid, args, isGroup) => {
+        const infoText = `
 🤖 *INFORMACIÓN DEL BOT*
 
 🐱 *Nombre:* ${config.botName}
@@ -65,19 +62,19 @@ export async function info(sock, message, jid, userJid, args, isGroup) {
 💻 *Librería:* Baileys
 🔄 *Tipo:* Multi-funcional
 
-📞 *Soporte:* Contacta al owner
-    `.trim();
+📞 *Soporte:* Contacta al owner`
+        `.trim();
 
-    await sock.sendMessage(jid, { text: infoText });
-}
+        await sock.sendMessage(jid, { text: infoText });
+    }
+};
 
 export const owner = {
     name: 'owner',
-    description: 'Contacto del owner'
+    description: 'Contacto del owner',
+    execute: async (sock, message, jid, userJid, args, isGroup) => {
+        await sock.sendMessage(jid, { 
+            text: `📞 *CONTACTO DEL OWNER*\n\nWa.me/${config.owner[0].split('@')[0]}` 
+        });
+    }
 };
-
-export async function owner(sock, message, jid, userJid, args, isGroup) {
-    await sock.sendMessage(jid, { 
-        text: `📞 *CONTACTO DEL OWNER*\n\nWa.me/${config.owner[0].split('@')[0]}` 
-    });
-}
