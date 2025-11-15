@@ -1,43 +1,64 @@
-import { sock } from '../lib/connection.js';
-import { commandHandler } from '../handler/commandHandler.js';
+import makeWASocket, { useMultiFileAuthState, DisconnectReason, Browsers, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
+import pino from 'pino';
+import qrcode from 'qrcode-terminal';
 import { config } from '../config.js';
 
-sock.ev.on('messages.upsert', async ({ messages }) => {
-    const message = messages[0];
-    if (!message.message || message.key.fromMe) return;
+export let sock = null;
 
-    const jid = message.key.remoteJid;  // ✅ CORREGIR: remoteJid (no removeJid)
-    const isGroup = jid.endsWith('@g.us');  // ✅ CORREGIR: endsWith (no endswith)
-    const userJid = message.key.participant || jid;
+export async function startBot() {
+    const { state, saveCreds } = await useMultiFileAuthState('./session');
     
-    // Obtener texto del mensaje
-    const msgType = Object.keys(message.message)[0];
-    let text = '';
+    sock = makeWASocket({
+        version: [2, 2413, 1],
+        auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }))
+        },
+        printQRInTerminal: false,
+        logger: pino({ level: "silent" }),
+        browser: Browsers.ubuntu('Chrome'),
+        markOnlineOnConnect: true,
+        generateHighQualityLinkPreview: true,
+        syncFullHistory: false
+    });
+
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect, qr } = update;
+        
+        if (qr) {
+            console.log('╔═══════════════════════════╗');
+            console.log('║    ESCANEA EL CÓDIGO QR   ║');
+            console.log('╚═══════════════════════════╝');
+            qrcode.generate(qr, { small: true });
+        }
+
+        if (connection === 'close') {
+            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+            console.log('⏳ Reconectando...');
+            if (shouldReconnect) {
+                setTimeout(startBot, 5000);
+            }
+        } else if (connection === 'open') {
+            console.log('✅ Conexión exitosa con WhatsApp');
+            console.log(`🤖 ${config.botName} está listo!`);
+        }
+    });
+
+    sock.ev.on('creds.update', saveCreds);
     
-    if (msgType === 'conversation') {
-        text = message.message.conversation;
-    } else if (msgType === 'extendedTextMessage') {
-        text = message.message.extendedTextMessage.text;
-    } else if (msgType === 'imageMessage') {
-        text = message.message.imageMessage.caption || '';
-    }
+    // ✅ AGREGAR los event listeners aquí
+    setupMessageHandler();
+    
+    return sock;
+}
 
-    // Verificar prefijo
-    const isCmd = text.startsWith(config.prefix);
-    const command = isCmd ? text.slice(config.prefix.length).trim().split(' ')[0].toLowerCase() : '';
-    const args = isCmd ? text.slice(config.prefix.length + command.length).trim().split(' ') : [];
-
-    // Manejar comandos
-    if (isCmd) {
-        await commandHandler(sock, message, jid, userJid, command, args, isGroup);
-    }
-
-    // Mensaje de bienvenida automático
-    if (text.toLowerCase() === 'hola' && !isGroup) {
-        await sock.sendMessage(jid, { 
-            text: config.messages.welcome
-                .replace('{botname}', config.botName)
-                .replace('{prefix}', config.prefix)
-        });
-    }
-});
+// ✅ MOVER el message handler aquí
+function setupMessageHandler() {
+    if (!sock) return;
+    
+    import('../handler/messageHandler.js').then(module => {
+        console.log('✅ Handlers cargados correctamente');
+    }).catch(error => {
+        console.error('❌ Error cargando handlers:', error);
+    });
+}
