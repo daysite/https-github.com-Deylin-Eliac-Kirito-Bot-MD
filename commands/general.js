@@ -26,7 +26,7 @@ ${config.prefix}grupos - Comandos de grupo
 🔧 *Owner* ${config.owner.includes(userJid) ? '' : '(Solo owner)'}
 ${config.prefix}bc [texto] - Broadcast
 
-_📧 Creado con ❤️ usando Baileys`
+_📧 Creado con ❤️ usando Baileys_
         `.trim();
 
         await sock.sendMessage(jid, { text: menuText });
@@ -62,7 +62,7 @@ export const info = {
 💻 *Librería:* Baileys
 🔄 *Tipo:* Multi-funcional
 
-📞 *Soporte:* Contacta al owner`
+📞 *Soporte:* Contacta al owner
         `.trim();
 
         await sock.sendMessage(jid, { text: infoText });
