@@ -1,6 +1,5 @@
 import { startBot } from './lib/connection.js';
-import './handlers/messageHandler.js'; // ✅ AGREGAR esta línea
-
+import './handler/messageHandler.js';   // ✅ Nueva
 console.log(`
 ╔═══════════════════════════╗
 ║    🐱 NEKOBOT-MD 🐱     ║
