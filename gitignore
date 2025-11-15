@@ -1,0 +1,8 @@
+node_modules/
+session/
+.DS_Store
+*.tmp
+*.log
+config.js
+assets/temp/*
+!assets/temp/.gitkeep
