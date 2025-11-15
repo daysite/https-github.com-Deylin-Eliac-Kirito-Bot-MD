@@ -24,8 +24,8 @@ export async function commandHandler(sock, message, jid, userJid, command, args,
             return await sock.sendMessage(jid, { text: config.messages.groupOnly });
         }
 
-        // Ejecutar comando
-        await cmdFunction(sock, message, jid, userJid, args, isGroup);
+        // ✅ EJECUTAR usando cmdFunction.execute
+        await cmdFunction.execute(sock, message, jid, userJid, args, isGroup);
 
     } catch (error) {
         console.error('Error en comando:', error);
